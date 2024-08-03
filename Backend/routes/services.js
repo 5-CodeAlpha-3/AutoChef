@@ -14,6 +14,31 @@ router.get('/', async (req, res) => {
   }
 });
 // Update a service.
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, description, price, duration } = req.body;
+
+  if (!name || !description || !price || !duration) {
+    return res.status(400).json({ message: 'Please provide all required fields' });
+  }
+
+  try {
+    const updatedService = await Service.findByIdAndUpdate(
+      id,
+      { name, description, price, duration },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedService) {
+      return res.status(404).json({ message: 'Service not found' });
+    }
+
+    res.status(200).json(updatedService);
+  } catch (error) {
+    console.error('Error updating service:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 // Add a new service
 router.post('/',async (req, res) => {
   const { name, description, price, duration } = req.body;
