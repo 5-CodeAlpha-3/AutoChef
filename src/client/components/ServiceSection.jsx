@@ -81,7 +81,7 @@ const ServicesSection = ({
               whileInView="visible"
               viewport={{ once: true, amount: 0.3 }}
             >
-              <span className="font-bold">{point.title}:</span> {point.text}
+              <span>{point}</span>
             </motion.li>
           ))}
         </ul>

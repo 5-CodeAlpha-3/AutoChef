@@ -16,7 +16,7 @@ const MenuItems = ({ isHeader = false, className = "" , setIsOpen }) => {
           <NavLink
             to={item.path}
             className={({ isActive }) => 
-              `hover:text-[#DE0000] block w-fit ${isHeader ? 'py-2 md:py-3 lg:py-4 px-4 md:px-0' : '' } transition-colors duration-300 ${(isHeader && isActive) ? 'text-[#DE0000] font-bold' : ''}`
+              `hover:text-[#DE0000]  ${isHeader ? 'block w-fit py-2 md:py-3 lg:py-4 px-4 md:px-0' : '' } transition-colors duration-300 ${(isHeader && isActive) ? 'text-[#DE0000] font-bold' : ''}`
             }
             onClick={handleMenuItemClick}
           >

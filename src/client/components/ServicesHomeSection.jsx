@@ -14,7 +14,7 @@ const ServicesHomeSection = ({ image }) => {
             <Link
               to={`/services#${service.path}`}
               key={service.title}
-              className="relative hover:outline outline-red-60 bg-white p-6 rounded-lg border border-gray-300 overflow-hidden  hover:scale-105 transition duration-300"
+              className="relative hover:outline outline-red-60 bg-white p-6 rounded-xl border hover:border-none border-gray-300 overflow-hidden  hover:scale-[1.01] md:hover:scale-[1.03] transition duration-300"
             >
               {/* Content */}
               <div className="relative z-10">
