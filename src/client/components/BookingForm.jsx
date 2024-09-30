@@ -101,6 +101,7 @@ const BookingForm = ({ isloggedIn }) => {
     const url =`${process.env.REACT_APP_BACKEND_URL}/api/booking` //template literal
 
     const payload = {
+      customerName: formData.fullName,
       contact: formData.contactNumber,
       service: formData.service,
       vehicleInfo: formData.serviceInfo,
