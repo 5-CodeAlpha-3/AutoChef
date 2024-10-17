@@ -92,6 +92,14 @@ const BookingForm = ({ isloggedIn }) => {
       const data = await response.json();
       console.log('Success:', data);
 
+      // Reset form data to initial state after booking confirmation
+      setFormData({
+        fullName: '',
+        contactNumber: '',
+        service: '',
+        serviceInfo: '',
+      });
+
       setModalState({ isOpen: false, isBookingConfirmed: true });
 
     } catch (error) {
