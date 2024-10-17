@@ -53,31 +53,27 @@ const InputField = ({ label, type, icon: Icon, value, onChange, error }) => (
 );
 
 const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
-  const [action, setAction] = useState(initialAction || 'Sign In'); // State to manage current form (Sign In or Sign Up)
-  const [state, dispatch] = useReducer(reducer, initialState); // State management for form inputs
-  const [errors, setErrors] = useState({}); // State to track form validation errors
+  const [action, setAction] = useState(initialAction || 'Sign In');
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const { setIsLoggedIn } = useContext(UserContext);
   const navigate = useNavigate();
 
-  // Sanitize input values to prevent unnecessary data from being submitted
   const sanitizeInput = (input) => input.trim();
 
-  // Validate form inputs before submission
   const validate = () => {
     const newErrors = {};
-
     if (!state.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(state.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-
     if (!state.password) {
       newErrors.password = 'Password is required';
     } else if (state.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-
     if (action === 'Sign Up') {
       if (!state.firstname) {
         newErrors.firstname = 'First name is required';
@@ -86,11 +82,9 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         newErrors.lastname = 'Last name is required';
       }
     }
-
     return newErrors;
   };
 
-  // Handle form submission
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
@@ -100,8 +94,8 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         return;
       }
       setErrors({});
+      setLoading(true); // Start loading state
 
-      // Prepare payload with sanitized input values
       const payload = {
         email: sanitizeInput(state.email),
         password: sanitizeInput(state.password),
@@ -112,12 +106,6 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         payload.lastName = sanitizeInput(state.lastname);
       }
 
-      // const url =
-      //   action === 'Sign In'
-      //     ? 'http://localhost:8080/api/auth'
-      //     : 'http://localhost:8080/api/users';
-
-      //template literal used
       const url =
         action === 'Sign In'
           ? `${process.env.REACT_APP_BACKEND_URL}/api/auth`
@@ -134,47 +122,45 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         });
 
         if (!response.ok) {
-          const errorData = await response.json(); // Parse the error response
+          const errorData = await response.json();
           console.error('Error details:', errorData);
           throw new Error('Network response was not ok');
         }
 
         const data = await response.json();
-        setIsLoggedIn(true); // Set logged-in state
+        setIsLoggedIn(true);
         console.log('Success:', data);
 
         if (action === 'Sign In' || action === 'Login') {
           setIsLoggedIn(true);
-          navigate('/services'); // Redirect on successful login
+          navigate('/services');
         } else {
           console.log('Sign Up Successful', data);
         }
 
-        onClose(); // Close the modal on success
+        onClose();
       } catch (error) {
         console.error('Error:', error);
         alert('An error occurred while processing your request. Please try again later.');
+      } finally {
+        setLoading(false); // End loading state
       }
     },
     [action, state, onClose, navigate, setIsLoggedIn]
   );
 
-  // Toggle between Sign In and Sign Up forms
   const toggleAction = useCallback(() => {
     setAction((prevAction) => (prevAction === 'Sign In' ? 'Sign Up' : 'Sign In'));
-    dispatch({ type: 'RESET' }); // Reset form fields on action change
+    dispatch({ type: 'RESET' });
     setErrors({});
   }, []);
 
-  // Disable background scrolling when the modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
-
-    // Cleanup when component unmounts or modal closes
     return () => {
       document.body.style.overflow = '';
     };
@@ -242,8 +228,9 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         <button
           type="submit"
           className="bg-red-600 hover:bg-[#c32222] active:bg-red-700 text-white w-full py-2 rounded-lg my-6"
+          disabled={loading} // Disable button when loading
         >
-          {action}
+          {loading ? 'Loading...' : action} {/* Change button text based on loading state */}
         </button>
       </form>
       <p className="text-center text-gray-500 mt-2">
