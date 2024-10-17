@@ -3,13 +3,11 @@ import Modal from 'react-modal';
 import ServiceDropdown from '../components/ServiceDropdown';
 
 const BookingForm = ({ isloggedIn }) => {
-  // State to manage modal visibility and booking confirmation status
   const [modalState, setModalState] = useState({
     isOpen: false,
     isBookingConfirmed: false,
   });
 
-  // State to manage the form data
   const [formData, setFormData] = useState({
     fullName: '',
     contactNumber: '',
@@ -17,27 +15,24 @@ const BookingForm = ({ isloggedIn }) => {
     serviceInfo: '',
   });
 
-  // Disable background scrolling when any modal is open
   useEffect(() => {
     const isModalOpen = modalState.isOpen || modalState.isBookingConfirmed;
     document.body.style.overflow = isModalOpen ? 'hidden' : '';
 
-    // Cleanup on component unmount or when modals close
     return () => {
       document.body.style.overflow = '';
     };
   }, [modalState.isOpen, modalState.isBookingConfirmed]);
 
-  // Handler for form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log(`${name}: ${value}`);  // Debug log to check form data
     setFormData((prevFormData) => ({
       ...prevFormData,
       [name]: value,
     }));
   };
 
-  // Validate contact number format
   const isContactNumberValid = (contactNumber) => {
     const phoneRegex = /^[0-9()+\- ]+$/;
     const numericContactNumber = contactNumber.replace(/[^0-9]/g, '');
@@ -48,17 +43,15 @@ const BookingForm = ({ isloggedIn }) => {
     );
   };
 
-  // Check if the form is valid
   const isFormValid = () => {
     return (
-      formData.fullName.trim() !== '' &&
+      formData.fullName.trim() !== '' &&  // Ensure fullName is not empty
       isContactNumberValid(formData.contactNumber) &&
       formData.service.trim() !== '' &&
       formData.serviceInfo.trim() !== ''
     );
   };
 
-  // Open the confirmation modal
   const handleOpenModal = (e) => {
     e.preventDefault();
     if (isFormValid()) {
@@ -66,42 +59,13 @@ const BookingForm = ({ isloggedIn }) => {
     }
   };
 
-  // const [serviceIds, setServiceIds] = useState([]);
-  // const [selectedServiceId, setSelectedServiceId] = useState('');
-
-  // Fetch service IDs and set them in state
-  // useEffect(() => {
-  //   const fetchServiceIds = async () => {
-  //     try {
-  //       const response = await fetch('http://localhost:8080/api/services');
-  //       if (!response.ok) {
-  //         throw new Error('Network response was not ok');
-  //       }
-  //       const services = await response.json();
-  //       setServiceIds(services.map(service => service._id));
-  //       // setSelectedServiceId(services.filter(service => service.name === formData.service)._id);
-  //       // console.log(selectedServiceId);
-  //     } catch (error) {
-  //       console.error('Error fetching service IDs:', error);
-  //     }
-  //   };
-
-  //   fetchServiceIds();
-  // });
-
-  // Confirm booking and close the first modal
   const handleConfirmBooking = async (event) => {
-    setModalState({ isOpen: false, isBookingConfirmed: true });
     event.preventDefault();
 
-    //const url = 'http://localhost:8080/api/booking';
-
-    // const url = "https://autochef-backend.onrender.com";
-
-    const url =`${process.env.REACT_APP_BACKEND_URL}/api/booking` //template literal
+    const url = `${process.env.REACT_APP_BACKEND_URL}/api/booking`;
 
     const payload = {
-      customerName: formData.fullName,
+      customerName: formData.fullName,  // Ensure fullName is sent correctly
       contact: formData.contactNumber,
       service: formData.service,
       vehicleInfo: formData.serviceInfo,
@@ -118,7 +82,7 @@ const BookingForm = ({ isloggedIn }) => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json(); // Parse the error response
+        const errorData = await response.json();
         console.error('Response status:', response.status);
         console.error('Response status text:', response.statusText);
         console.error('Error details:', errorData);
@@ -126,32 +90,31 @@ const BookingForm = ({ isloggedIn }) => {
       }
 
       const data = await response.json();
-      
-      console.log('Success:', data); 
+      console.log('Success:', data);
+
+      setModalState({ isOpen: false, isBookingConfirmed: true });
+
     } catch (error) {
       console.error('Error:', error);
       alert('An error occurred while processing your request. Please try again later.');
     }
   };
 
-  // Close the first modal
   const handleCloseModal = () => {
     setModalState({ ...modalState, isOpen: false });
   };
 
-  // Close the booking confirmation modal
   const handleCloseConfirmationModal = () => {
     setModalState({ ...modalState, isBookingConfirmed: false });
   };
 
-  // Reusable component to render input fields
-  const renderInputField = (label, type, name, placeholder) => (
+  const renderInputField = (label, type, fullname, placeholder) => (
     <div className="flex-1">
       <label className="block text-sm font-medium text-gray-700">{label}</label>
       <input
         type={type}
-        name={name}
-        value={formData[name]}
+        name={fullname}  // Ensure field is named correctly for formData binding
+        value={formData[fullname]}  // Binds to formData fullName
         onChange={handleInputChange}
         className="mt-1 block w-full border border-gray-300 p-3 rounded-md shadow-sm focus:outline focus:ring-green-500 sm:text-sm"
         placeholder={placeholder}
@@ -160,7 +123,6 @@ const BookingForm = ({ isloggedIn }) => {
     </div>
   );
 
-  // Reusable component to render modals
   const renderModal = (isOpen, onRequestClose, title, content, actions) => (
     <Modal
       isOpen={isOpen}
@@ -186,9 +148,9 @@ const BookingForm = ({ isloggedIn }) => {
           <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="service">
             Service
           </label>
-          <ServiceDropdown 
-            formData={formData} 
-            handleInputChange={handleInputChange} 
+          <ServiceDropdown
+            formData={formData}
+            handleInputChange={handleInputChange}
           />
         </div>
 
@@ -209,18 +171,16 @@ const BookingForm = ({ isloggedIn }) => {
 
         <button
           onClick={handleOpenModal}
-          className={`${
-            isFormValid()
+          className={`${isFormValid()
               ? 'hover:bg-red-600 text-red-700 bg-white hover:text-white border-red-300'
               : 'bg-gray-200 text-gray-500 cursor-not-allowed border-gray-300'
-          } border px-5 py-2 rounded-lg w-full`}
+            } border px-5 py-2 rounded-lg w-full`}
           disabled={!isFormValid()}
         >
           Confirm Booking
         </button>
       </form>
 
-      {/* Modal to confirm booking */}
       {renderModal(
         modalState.isOpen,
         handleCloseModal,
@@ -242,7 +202,6 @@ const BookingForm = ({ isloggedIn }) => {
         </>
       )}
 
-      {/* Modal to display booking confirmation */}
       {renderModal(
         modalState.isBookingConfirmed,
         handleCloseConfirmationModal,
