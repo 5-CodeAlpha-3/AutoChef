@@ -53,27 +53,32 @@ const InputField = ({ label, type, icon: Icon, value, onChange, error }) => (
 );
 
 const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
-  const [action, setAction] = useState(initialAction || 'Sign In');
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [action, setAction] = useState(initialAction || 'Sign In'); // State to manage current form (Sign In or Sign Up)
+  const [state, dispatch] = useReducer(reducer, initialState); // State management for form inputs
+  const [errors, setErrors] = useState({}); // State to track form validation errors
+  const [loading, setLoading] = useState(false); // Loading state
   const { setIsLoggedIn } = useContext(UserContext);
   const navigate = useNavigate();
 
+  // Sanitize input values to prevent unnecessary data from being submitted
   const sanitizeInput = (input) => input.trim();
 
+  // Validate form inputs before submission
   const validate = () => {
     const newErrors = {};
+
     if (!state.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(state.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
+
     if (!state.password) {
       newErrors.password = 'Password is required';
     } else if (state.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
+
     if (action === 'Sign Up') {
       if (!state.firstname) {
         newErrors.firstname = 'First name is required';
@@ -82,9 +87,11 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         newErrors.lastname = 'Last name is required';
       }
     }
+
     return newErrors;
   };
 
+  // Handle form submission
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
@@ -94,8 +101,9 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         return;
       }
       setErrors({});
-      setLoading(true); // Start loading state
+      setLoading(true); // Show loading indicator
 
+      // Prepare payload with sanitized input values
       const payload = {
         email: sanitizeInput(state.email),
         password: sanitizeInput(state.password),
@@ -106,6 +114,12 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         payload.lastName = sanitizeInput(state.lastname);
       }
 
+      // const url =
+      //   action === 'Sign In'
+      //     ? 'http://localhost:8080/api/auth'
+      //     : 'http://localhost:8080/api/users';
+
+      //template literal used
       const url =
         action === 'Sign In'
           ? `${process.env.REACT_APP_BACKEND_URL}/api/auth`
@@ -122,45 +136,49 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData = await response.json(); // Parse the error response
           console.error('Error details:', errorData);
           throw new Error('Network response was not ok');
         }
 
         const data = await response.json();
-        setIsLoggedIn(true);
+        setIsLoggedIn(true); // Set logged-in state
         console.log('Success:', data);
 
         if (action === 'Sign In' || action === 'Login') {
           setIsLoggedIn(true);
-          navigate('/services');
+          navigate('/services'); // Redirect on successful login
         } else {
           console.log('Sign Up Successful', data);
         }
 
-        onClose();
+        onClose(); // Close the modal on success
       } catch (error) {
         console.error('Error:', error);
         alert('An error occurred while processing your request. Please try again later.');
       } finally {
-        setLoading(false); // End loading state
+        setLoading(false); // Hide loading indicator
       }
     },
     [action, state, onClose, navigate, setIsLoggedIn]
   );
 
+  // Toggle between Sign In and Sign Up forms
   const toggleAction = useCallback(() => {
     setAction((prevAction) => (prevAction === 'Sign In' ? 'Sign Up' : 'Sign In'));
-    dispatch({ type: 'RESET' });
+    dispatch({ type: 'RESET' }); // Reset form fields on action change
     setErrors({});
   }, []);
 
+  // Disable background scrolling when the modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
+
+    // Cleanup when component unmounts or modal closes
     return () => {
       document.body.style.overflow = '';
     };
@@ -215,36 +233,39 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
           onChange={(e) => dispatch({ type: 'SET_PASSWORD', payload: e.target.value })}
           error={errors.password}
         />
-        {action === 'Sign In' && (
-          <div className="text-right mt-2">
-            <a
-              href="https://support.google.com/accounts/answer/41078?hl=en&co=GENIE.Platform%3DAndroid"
-              className="text-red-600 text-sm"
-            >
-              Forgot password
-            </a>
+
+        {/* Display the loading indicator */}
+        {loading && (
+          <div className="flex justify-center items-center my-4">
+            <div className="w-6 h-6 border-t-4 border-red-600 border-solid rounded-full animate-spin"></div>
           </div>
         )}
+
         <button
           type="submit"
-          className="bg-red-600 hover:bg-[#c32222] active:bg-red-700 text-white w-full py-2 rounded-lg my-6"
-          disabled={loading} // Disable button when loading
+          className="bg-red-600 hover:bg-[#c32222] active:bg-red-700 text-white w-full py-2 rounded-lg font-semibold transition-all ease-in-out duration-200"
+          disabled={loading} // Disable the button during loading
         >
-          {loading ? 'Loading...' : action} {/* Change button text based on loading state */}
+          {loading ? 'Processing...' : action}
         </button>
       </form>
-      <p className="text-center text-gray-500 mt-2">
-        {action === 'Sign In' ? "Don't" : 'Already'} have an account?
-        <button onClick={toggleAction} className="text-red-600 ml-1">
-          {action === 'Sign In' ? 'Sign Up' : 'Sign In'}
-        </button>
-      </p>
-      <button
-        className="absolute top-5 right-5 text-black text-2xl"
-        onClick={onClose}
-      >
-        &times;
-      </button>
+      <div className="mt-4 text-center">
+        {action === 'Sign In' ? (
+          <>
+            <span>Don't have an account?</span>
+            <button onClick={toggleAction} className="text-red-600 underline">
+              Sign Up
+            </button>
+          </>
+        ) : (
+          <>
+            <span>Already have an account?</span>
+            <button onClick={toggleAction} className="text-red-600 underline">
+              Sign In
+            </button>
+          </>
+        )}
+      </div>
     </Modal>
   );
 };
