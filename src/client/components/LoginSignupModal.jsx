@@ -114,12 +114,6 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         payload.lastName = sanitizeInput(state.lastname);
       }
 
-      // const url =
-      //   action === 'Sign In'
-      //     ? 'http://localhost:8080/api/auth'
-      //     : 'http://localhost:8080/api/users';
-
-      //template literal used
       const url =
         action === 'Sign In'
           ? `${process.env.REACT_APP_BACKEND_URL}/api/auth`
@@ -145,7 +139,12 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         setIsLoggedIn(true); // Set logged-in state
         console.log('Success:', data);
 
+        // Store the userId in localStorage for both sign-up and sign-in
+        localStorage.setItem('userId', data.userId); // Assuming the server response contains a userId
+        console.log('User ID stored in local storage:', data.userId);
+
         if (action === 'Sign In' || action === 'Login') {
+          
           setIsLoggedIn(true);
           navigate('/services'); // Redirect on successful login
         } else {
