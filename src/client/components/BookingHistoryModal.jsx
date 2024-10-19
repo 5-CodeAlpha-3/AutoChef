@@ -14,7 +14,13 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
       const userId = localStorage.getItem('userId'); // Retrieve userId from local storage
 
       try {
-        const response = await fetch(`/api/booking/user/${userId}`); // Use userId to fetch bookings
+        const response = await fetch(`/api/booking/user/${userId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include token if necessary
+          },
+        });
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -25,6 +31,7 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
       } catch (error) {
         console.error('Error fetching bookings:', error);
 
+        // Fallback bookings for demonstration purposes
         const fallbackData = [
           { service: 'Full Body Spray', date: '19th August, 2024', status: 'Pending', invoiceNumber: 'INV001' },
           { service: 'Full Body Spray', date: '19th August, 2024', status: 'Requested', invoiceNumber: 'INV002' },
@@ -64,7 +71,12 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
   const handleDelete = async (invoiceNumber) => {
     if (window.confirm('Are you sure you want to delete this booking?')) {
       try {
-        const response = await fetch(`/api/booking/${invoiceNumber}`, { method: 'DELETE' });
+        const response = await fetch(`/api/booking/${invoiceNumber}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include token if required
+          },
+        });
 
         if (!response.ok) {
           throw new Error('Failed to delete booking');
@@ -86,6 +98,7 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include token if required
         },
         body: JSON.stringify({ status: newStatus }),
       });
