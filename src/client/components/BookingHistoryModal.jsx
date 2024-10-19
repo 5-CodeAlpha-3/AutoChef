@@ -18,7 +18,6 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include token if necessary
           },
         });
 
