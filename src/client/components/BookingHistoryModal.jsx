@@ -14,7 +14,7 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
       const userId = localStorage.getItem('userId'); // Retrieve userId from local storage
 
       try {
-        const response = await fetch(`/api/booking/user/${userId}`, {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/booking/user/${userId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
