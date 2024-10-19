@@ -15,6 +15,7 @@ const BookingForm = ({ isloggedIn }) => {
     serviceInfo: '',
   });
 
+  // Disable background scrolling when modals are open
   useEffect(() => {
     const isModalOpen = modalState.isOpen || modalState.isBookingConfirmed;
     document.body.style.overflow = isModalOpen ? 'hidden' : '';
@@ -26,7 +27,6 @@ const BookingForm = ({ isloggedIn }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`${name}: ${value}`);  // Debug log to check form data
     setFormData((prevFormData) => ({
       ...prevFormData,
       [name]: value,
@@ -45,7 +45,7 @@ const BookingForm = ({ isloggedIn }) => {
 
   const isFormValid = () => {
     return (
-      formData.fullName.trim() !== '' &&  // Ensure fullName is not empty
+      formData.fullName.trim() !== '' &&
       isContactNumberValid(formData.contactNumber) &&
       formData.service.trim() !== '' &&
       formData.serviceInfo.trim() !== ''
@@ -59,16 +59,31 @@ const BookingForm = ({ isloggedIn }) => {
     }
   };
 
+  // Reset the form after booking
+  const resetForm = () => {
+    setFormData({
+      fullName: '',
+      contactNumber: '',
+      service: '',
+      serviceInfo: '',
+    });
+  };
+
+  // Confirm booking and close the first modal
   const handleConfirmBooking = async (event) => {
     event.preventDefault();
 
     const url = `${process.env.REACT_APP_BACKEND_URL}/api/booking`;
 
+    // Retrieve the user ID from local storage
+    const userId = localStorage.getItem('userId');
+
     const payload = {
-      customerName: formData.fullName,  // Ensure fullName is sent correctly
+      customerName: formData.fullName,
       contact: formData.contactNumber,
       service: formData.service,
       vehicleInfo: formData.serviceInfo,
+      userId, // Add user ID to the payload
     };
 
     try {
@@ -92,16 +107,11 @@ const BookingForm = ({ isloggedIn }) => {
       const data = await response.json();
       console.log('Success:', data);
 
-      // Reset form data to initial state after booking confirmation
-      setFormData({
-        fullName: '',
-        contactNumber: '',
-        service: '',
-        serviceInfo: '',
-      });
-
       setModalState({ isOpen: false, isBookingConfirmed: true });
 
+      // Reset the form after a successful booking
+      resetForm();
+      
     } catch (error) {
       console.error('Error:', error);
       alert('An error occurred while processing your request. Please try again later.');
@@ -121,8 +131,8 @@ const BookingForm = ({ isloggedIn }) => {
       <label className="block text-sm font-medium text-gray-700">{label}</label>
       <input
         type={type}
-        name={fullname}  // Ensure field is named correctly for formData binding
-        value={formData[fullname]}  // Binds to formData fullName
+        name={fullname}
+        value={formData[fullname]}
         onChange={handleInputChange}
         className="mt-1 block w-full border border-gray-300 p-3 rounded-md shadow-sm focus:outline focus:ring-green-500 sm:text-sm"
         placeholder={placeholder}
