@@ -29,16 +29,6 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
         setBookings(data);
       } catch (error) {
         console.error('Error fetching bookings:', error);
-
-        // Fallback bookings for demonstration purposes
-        const fallbackData = [
-          { service: 'Full Body Spray', date: '19th August, 2024', status: 'Pending', invoiceNumber: 'INV001' },
-          { service: 'Full Body Spray', date: '19th August, 2024', status: 'Requested', invoiceNumber: 'INV002' },
-          { service: 'Full Body Spray', date: '18th August, 2024', status: 'Cancelled', invoiceNumber: 'INV003' },
-          { service: 'Full Body Spray', date: '17th August, 2024', status: 'Completed', invoiceNumber: 'INV004' },
-          { service: 'Full Body Spray', date: '16th August, 2024', status: 'Pending', invoiceNumber: 'INV005' },
-        ];
-        setBookings(fallbackData);
       }
     };
 
@@ -61,62 +51,6 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
     setIsRatingPopupOpen(false);
   };
 
-  const handleCancel = (invoiceNumber) => {
-    if (window.confirm('Are you sure you want to cancel this booking?')) {
-      updateBookingStatus(invoiceNumber, 'Cancelled');
-    }
-  };
-
-  const handleDelete = async (invoiceNumber) => {
-    if (window.confirm('Are you sure you want to delete this booking?')) {
-      try {
-        const response = await fetch(`/api/booking/${invoiceNumber}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include token if required
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to delete booking');
-        }
-
-        setBookings((prevBookings) =>
-          prevBookings.filter((booking) => booking.invoiceNumber !== invoiceNumber)
-        );
-      } catch (error) {
-        console.error('Error deleting booking:', error);
-        alert('An error occurred while deleting the booking. Please try again.');
-      }
-    }
-  };
-
-  const updateBookingStatus = async (invoiceNumber, newStatus) => {
-    try {
-      const response = await fetch(`/api/booking/${invoiceNumber}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include token if required
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update booking status');
-      }
-
-      setBookings((prevBookings) =>
-        prevBookings.map((booking) =>
-          booking.invoiceNumber === invoiceNumber ? { ...booking, status: newStatus } : booking
-        )
-      );
-    } catch (error) {
-      console.error('Error updating booking status:', error);
-      alert('An error occurred while updating the booking status. Please try again.');
-    }
-  };
-
   return (
     <>
       <Modal
@@ -135,6 +69,7 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
         <h2 className="text-center text-xl md:text-2xl font-semibold mb-4">Booking History</h2>
         <div className="bg-white w-full border border-[#E8E9ED] rounded-xl p-4">
           <div className="flex justify-between border-b bg-[#F5F6F8] p-3">
+            <div>Contact</div>
             <div>Service</div>
             <div className="hidden md:block">Date</div>
             <div>Status</div>
@@ -149,28 +84,14 @@ const BookingHistoryModal = ({ isOpen, onClose }) => {
                 <div key={index} className="border-b">
                   <div className="flex justify-between text-sm md:text-base pt-2 items-center">
                     <div className="block md:flex md:gap-6 p-1 md:p-0">
+                      <div className="md:p-1">{booking.contact}</div>
                       <div className="md:p-1">{booking.service}</div>
-                      <div className="text-gray-400 md:text-black md:p-1">{booking.date}</div>
+                      <div className="text-gray-400 md:text-black md:p-1">{new Date(booking.date).toLocaleDateString()}</div>
                     </div>
                     <div className="p-1 text-right">
                       <StatusBadge status={booking.status} />
                     </div>
                   </div>
-                  <button
-                    className={`bg-[rgba(110,119,134,0.2)] text-[#6E7786] p-1 md:p-[6px] my-3 w-full rounded-lg ${
-                      booking.status === 'Pending'
-                        ? 'cursor-not-allowed'
-                        : 'hover:bg-[#d04343] active:bg-[#DE0000] hover:text-white active:text-white'
-                    }`}
-                    disabled={booking.status === 'Pending'}
-                    onClick={() =>
-                      booking.status === 'Requested'
-                        ? handleCancel(booking.invoiceNumber)
-                        : handleDelete(booking.invoiceNumber)
-                    }
-                  >
-                    {booking.status === 'Requested' ? 'Cancel' : 'Delete'}
-                  </button>
                 </div>
               ))
             )}
