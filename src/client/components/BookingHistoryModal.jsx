@@ -2,18 +2,19 @@ import React, { useContext, useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import StatusBadge from '../../admin/components/StatusBadge';
 import { BookingContext } from '../context/BookingContext';
-import RatingPopup from '../components/RatingPopup'; // Import the RatingPopup component
+import RatingPopup from '../components/RatingPopup';
 
-const BookingHistoryModal = ({ isOpen, onClose, customerId }) => {
+const BookingHistoryModal = ({ isOpen, onClose }) => {
   const { bookings, setBookings } = useContext(BookingContext);
   const [isRatingPopupOpen, setIsRatingPopupOpen] = useState(false);
-  const [completedBooking, setCompletedBooking] = useState(null); // Track the booking that was completed
+  const [completedBooking, setCompletedBooking] = useState(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
+      const userId = localStorage.getItem('userId'); // Retrieve userId from local storage
+
       try {
-        // Fetch data from API
-        const response = await fetch(`/api/customers/${customerId}/bookings`);
+        const response = await fetch(`/api/booking/user/${userId}`); // Use userId to fetch bookings
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -24,7 +25,6 @@ const BookingHistoryModal = ({ isOpen, onClose, customerId }) => {
       } catch (error) {
         console.error('Error fetching bookings:', error);
 
-        // Fallback to hardcoded data if API fails
         const fallbackData = [
           { service: 'Full Body Spray', date: '19th August, 2024', status: 'Pending', invoiceNumber: 'INV001' },
           { service: 'Full Body Spray', date: '19th August, 2024', status: 'Requested', invoiceNumber: 'INV002' },
@@ -36,12 +36,11 @@ const BookingHistoryModal = ({ isOpen, onClose, customerId }) => {
       }
     };
 
-    if (isOpen && customerId) {
+    if (isOpen) {
       fetchBookings();
     }
-  }, [isOpen, customerId, setBookings]);
+  }, [isOpen, setBookings]);
 
-  // Detect when a booking is marked as "Completed"
   useEffect(() => {
     const completed = bookings.find((booking) => booking.status === 'Completed');
     if (completed) {
@@ -65,7 +64,7 @@ const BookingHistoryModal = ({ isOpen, onClose, customerId }) => {
   const handleDelete = async (invoiceNumber) => {
     if (window.confirm('Are you sure you want to delete this booking?')) {
       try {
-        const response = await fetch(`/api/customers/${customerId}/bookings/${invoiceNumber}`, { method: 'DELETE' });
+        const response = await fetch(`/api/booking/${invoiceNumber}`, { method: 'DELETE' });
 
         if (!response.ok) {
           throw new Error('Failed to delete booking');
@@ -83,8 +82,8 @@ const BookingHistoryModal = ({ isOpen, onClose, customerId }) => {
 
   const updateBookingStatus = async (invoiceNumber, newStatus) => {
     try {
-      const response = await fetch(`/api/customers/${customerId}/bookings/${invoiceNumber}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/booking/${invoiceNumber}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
