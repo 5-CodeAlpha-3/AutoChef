@@ -6,7 +6,6 @@ import classNames from 'classnames';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 
-// Initial state for form inputs
 const initialState = {
   email: '',
   firstname: '',
@@ -14,7 +13,6 @@ const initialState = {
   password: '',
 };
 
-// Reducer function to manage form input state
 function reducer(state, action) {
   switch (action.type) {
     case 'SET_EMAIL':
@@ -32,7 +30,6 @@ function reducer(state, action) {
   }
 }
 
-// Component for individual input fields with icons and error handling
 const InputField = ({ label, type, icon: Icon, value, onChange, error }) => (
   <div className="mb-4">
     <label className="block text-gray-700">{label}</label>
@@ -53,32 +50,28 @@ const InputField = ({ label, type, icon: Icon, value, onChange, error }) => (
 );
 
 const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
-  const [action, setAction] = useState(initialAction || 'Sign In'); // State to manage current form (Sign In or Sign Up)
-  const [state, dispatch] = useReducer(reducer, initialState); // State management for form inputs
-  const [errors, setErrors] = useState({}); // State to track form validation errors
-  const [loading, setLoading] = useState(false); // Loading state
+  const [action, setAction] = useState(initialAction || 'Sign In');
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [responseMessage, setResponseMessage] = useState(''); // New state to store backend responses
   const { setIsLoggedIn } = useContext(UserContext);
   const navigate = useNavigate();
 
-  // Sanitize input values to prevent unnecessary data from being submitted
   const sanitizeInput = (input) => input.trim();
 
-  // Validate form inputs before submission
   const validate = () => {
     const newErrors = {};
-
     if (!state.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(state.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-
     if (!state.password) {
       newErrors.password = 'Password is required';
     } else if (state.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-
     if (action === 'Sign Up') {
       if (!state.firstname) {
         newErrors.firstname = 'First name is required';
@@ -87,23 +80,21 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         newErrors.lastname = 'Last name is required';
       }
     }
-
     return newErrors;
   };
 
-  // Handle form submission
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
+      setResponseMessage(''); // Clear any previous response messages
       const formErrors = validate();
       if (Object.keys(formErrors).length > 0) {
         setErrors(formErrors);
         return;
       }
       setErrors({});
-      setLoading(true); // Show loading indicator
+      setLoading(true);
 
-      // Prepare payload with sanitized input values
       const payload = {
         email: sanitizeInput(state.email),
         password: sanitizeInput(state.password),
@@ -129,55 +120,41 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
           body: JSON.stringify(payload),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json(); // Parse the error response
-          console.error('Error details:', errorData);
-          throw new Error('Network response was not ok');
-        }
-
         const data = await response.json();
-        setIsLoggedIn(true); // Set logged-in state
-        console.log('Success:', data);
-
-        // Store the userId in localStorage for both sign-up and sign-in
-        localStorage.setItem('userId', data.userId); // Assuming the server response contains a userId
-        console.log('User ID stored in local storage:', data.userId);
-
-        if (action === 'Sign In' || action === 'Login') {
-          
-          setIsLoggedIn(true);
-          navigate('/services'); // Redirect on successful login
+        if (!response.ok) {
+          setResponseMessage(data.message || 'An error occurred');
         } else {
-          console.log('Sign Up Successful', data);
-        }
+          setIsLoggedIn(true);
+          localStorage.setItem('userId', data.userId);
+          setResponseMessage('Success: ' + (data.message || 'Operation successful'));
 
-        onClose(); // Close the modal on success
+          if (action === 'Sign In') {
+            navigate('/services');
+          }
+          onClose();
+        }
       } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while processing your request. Please try again later.');
+        setResponseMessage('An error occurred while processing your request. Please try again later.');
       } finally {
-        setLoading(false); // Hide loading indicator
+        setLoading(false);
       }
     },
     [action, state, onClose, navigate, setIsLoggedIn]
   );
 
-  // Toggle between Sign In and Sign Up forms
   const toggleAction = useCallback(() => {
     setAction((prevAction) => (prevAction === 'Sign In' ? 'Sign Up' : 'Sign In'));
-    dispatch({ type: 'RESET' }); // Reset form fields on action change
+    dispatch({ type: 'RESET' });
     setErrors({});
+    setResponseMessage('');
   }, []);
 
-  // Disable background scrolling when the modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
-
-    // Cleanup when component unmounts or modal closes
     return () => {
       document.body.style.overflow = '';
     };
@@ -233,7 +210,6 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
           error={errors.password}
         />
 
-        {/* Display the loading indicator */}
         {loading && (
           <div className="flex justify-center items-center my-4">
             <div className="w-6 h-6 border-t-4 border-red-600 border-solid rounded-full animate-spin"></div>
@@ -243,11 +219,17 @@ const LoginSignupModal = ({ isOpen, onClose, initialAction }) => {
         <button
           type="submit"
           className="bg-red-600 hover:bg-[#c32222] active:bg-red-700 text-white w-full py-2 rounded-lg font-semibold transition-all ease-in-out duration-200"
-          disabled={loading} // Disable the button during loading
+          disabled={loading}
         >
           {loading ? 'Processing...' : action}
         </button>
       </form>
+
+      {/* Display backend response message */}
+      {responseMessage && (
+        <div className="text-center mt-4 text-sm text-red-600">{responseMessage}</div>
+      )}
+
       <div className="mt-4 text-center">
         {action === 'Sign In' ? (
           <>
