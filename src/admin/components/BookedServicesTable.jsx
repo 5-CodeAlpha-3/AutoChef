@@ -21,13 +21,6 @@ const BookedServicesTable = ({ bookedServices, onSelectService }) => {
       <table className="min-w-full bg-white table-auto">
         <thead>
           <tr>
-            {/* Conditionally render the Invoice Number column */}
-            {isBookedServices && (
-              <th className="hidden xl:table-cell bg-[#F5F6F8] py-2 px-2 md:px-4 font-semibold text-center rounded-tl-xl whitespace-nowrap">
-                Invoice Number
-              </th>
-            )}
-
             {/* Customer Name column */}
             <th className={`bg-[#F5F6F8] ${!isBookedServices && 'rounded-tl-none text-center md:pr-2'} py-2 px-2 md:px-4 font-semibold text-left rounded-tl-xl xl:rounded-tl-none`}>
               Customer Name
