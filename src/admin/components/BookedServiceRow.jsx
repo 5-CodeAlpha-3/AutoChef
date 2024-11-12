@@ -21,7 +21,7 @@ const BookedServiceRow = ({ service, onSelectService }) => {
   // Handles action click inside the dropdown
   const handleActionClick = (event, action) => {
     event.stopPropagation(); // Prevent triggering other click events
-    updateBookingStatus(service.invoiceNumber, action);
+    updateBookingStatus(service.id, action); // Use `service.id` or another unique identifier instead of `invoiceNumber`
     setIsDropdownOpen(false);
   };
 
@@ -60,13 +60,6 @@ const BookedServiceRow = ({ service, onSelectService }) => {
       className="border-t hover:bg-gray-50 relative"
       onClick={() => isBookedServices && onSelectService(service)} // Trigger service selection on row click
     >
-      {/* Invoice Number Column - Visible only on the booked services page */}
-      {isBookedServices && (
-        <td className="hidden xl:table-cell py-2 px-2 md:px-4 text-[#DE0000] text-center whitespace-nowrap">
-          {service.invoiceNumber}
-        </td>
-      )}
-
       {/* Customer Name Column */}
       <td className={`flex flex-col ${!isBookedServices ? 'sm:table-cell text-center' : ''} md:table-cell py-2 px-2 md:px-4 text-sm md:text-base text-gray-700 whitespace-nowrap`}>
         <span>{service.customerName}</span>
