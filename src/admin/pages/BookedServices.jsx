@@ -15,19 +15,7 @@ const BookedServices = () => {
   const location = useLocation();
   const filterStatus = location.state?.filterStatus || ''; // Retrieve initial filter status from navigation state
 
-  const [bookedServices, setBookedServices] = useState([
-    { id: 1, customerName: 'John Doe', serviceName: 'Oil Change', date: '2024-07-25', status: 'Requested' },
-    { id: 2, customerName: 'Jane Smith', serviceName: 'Tire Replacement', date: '2024-07-24', status: 'Pending' },
-    { id: 3, customerName: 'Alice Johnson', serviceName: 'Brake Inspection', date: '2024-07-23', status: 'Completed' },
-    { id: 4, customerName: 'Bob Brown', serviceName: 'Battery Replacement', date: '2024-07-22', status: 'Cancelled' },
-    { id: 5, customerName: 'Charlie Green', serviceName: 'Paint Correction', date: '2024-07-21', status: 'Requested' },
-    { id: 6, customerName: 'Daisy Blue', serviceName: 'Transmission Repair', date: '2024-07-20', status: 'Pending' },
-    { id: 7, customerName: 'Ella White', serviceName: 'Engine Tune-Up', date: '2024-07-19', status: 'Completed' },
-    { id: 8, customerName: 'Frank Black', serviceName: 'Wheel Alignment', date: '2024-07-18', status: 'Cancelled' },
-    { id: 9, customerName: 'Grace Pink', serviceName: 'Air Filter Replacement', date: '2024-07-17', status: 'Requested' },
-    { id: 10, customerName: 'Henry Red', serviceName: 'Spark Plug Change', date: '2024-07-16', status: 'Pending' },
-  ]); // Full list of booked services
-
+  const [bookedServices, setBookedServices] = useState([]); // Empty array for booked services data
   const [currentPage, setCurrentPage] = useState(1); // Current page in pagination
   const [itemsPerPage, setItemsPerPage] = useState(5); // Items per page based on screen size
   const [filters, setFilters] = useState({
@@ -38,14 +26,29 @@ const BookedServices = () => {
   });
   const [selectedService, setSelectedService] = useState(null); // For service details modal
 
-  // Fetch booked services data from the server (replace with real API call)
+  // Fetch booked services data from the server
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/booking`)
-      .then((response) => response.json())
-      .then((data) => {
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/booking`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
         setBookedServices(data);
-      })
-      .catch((error) => console.error('Error fetching booked services:', error));
+      } catch (error) {
+        console.error('Error fetching booked services:', error);
+      }
+    };
+
+    fetchBookings();
   }, []);
 
   // Adjust items per page based on window size
