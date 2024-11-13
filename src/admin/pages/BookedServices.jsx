@@ -21,7 +21,7 @@ const BookedServices = () => {
   const [filters, setFilters] = useState({
     customerName: '',
     status: filterStatus, // Initialize with filterStatus from navigation
-    serviceName: '',
+    service: '',
     date: ''
   });
   const [selectedService, setSelectedService] = useState(null); // For service details modal
@@ -71,11 +71,11 @@ const BookedServices = () => {
   // Memoize the filtered services to avoid unnecessary recalculations
   const filteredServices = useMemo(() => {
     return bookedServices.filter((service) => {
-      const { customerName, status, serviceName, date } = filters;
+      const { customerName, status, service, date } = filters;
       return (
         (!customerName || service.customerName.toLowerCase().includes(customerName.toLowerCase())) &&
         (!status || service.status === status) &&
-        (!serviceName || service.serviceName.includes(serviceName)) &&
+        (!service || service.service.includes(service)) &&
         (!date || service.date === date)
       );
     });
@@ -105,7 +105,7 @@ const BookedServices = () => {
         head: [['Customer', 'Service', 'Date', 'Status']],
         body: filteredServices.map(service => [
           service.customerName,
-          service.serviceName,
+          service.service,
           service.date,
           service.status,
         ]),
@@ -115,7 +115,7 @@ const BookedServices = () => {
       const worksheet = XLSX.utils.json_to_sheet(
         filteredServices.map(service => ({
           Customer: service.customerName,
-          Service: service.serviceName,
+          Service: service.service,
           Date: service.date,
           Status: service.status,
         }))
